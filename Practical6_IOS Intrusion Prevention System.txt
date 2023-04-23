@@ -1,0 +1,93 @@
+Execute command on all routers
+enable secret enpa55
+line console 0
+password conpa55
+login
+exit
+ip domain-name ccnasecurity.com
+username admin secret adminpa55
+line vty 0 4
+login local
+exit
+crypto key generate rsa
+
+R1
+router ospf 1
+network 10.1.1.0 0.0.0.3 area 0
+network 192.168.1.0 0.0.0.255 area 0
+
+R2
+router ospf 1
+network 10.1.1.0 0.0.0.3 area 0
+network 10.2.2.0 0.0.0.3 area 0
+
+R3
+router ospf 1
+network 10.2.2.0 0.0.0.3 area 0
+network 192.168.3.0 0.0.0.255 area 0
+
+R1
+show version
+conf t
+license boot module c1900 technology-package securityk9
+exit
+copy run start
+reload 
+show version
+
+
+PCA> ping 192.168.3.2
+
+PCC> ping 192.168.1.2
+
+R1
+mkdir ipsdir
+conf t
+ip ips config location flash:ipsdir
+ip ips name iosips
+ip ips notify log
+clock set 13:13:56 03 MAR 2021
+service timestamps log datetime msec
+logging host 192.168.1.50
+
+ip ips signature-category
+category all
+retired true
+exit
+category ios_ips basic
+retired false
+exit
+exit
+int gig0/0
+ip ips iosips out
+
+show ip ips all
+
+View the syslog messages.
+Click the Syslog server->Services tab-> SYSLOG
+
+Modify the Signature
+ip ips signature-definition 
+signature 2004 0 
+status
+retired false 
+enabled true 
+exit
+engine 
+event-action produce-alert
+event-action deny-packet-inline 
+exit 
+exit 
+exit 
+
+show ip ips all
+
+Verify that IPS is working properly
+PCC> ping 192.168.1.2
+
+PCA> ping 192.168.3.2
+
+View the syslog messages.
+Click the Syslog server->Services tab-> SYSLOG
+
+

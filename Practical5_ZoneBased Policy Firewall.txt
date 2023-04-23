@@ -1,0 +1,104 @@
+Execute command on all routers
+line console 0
+password conpa55
+login
+line vty 0 4
+password vtypa55
+login
+exit
+enable secret enpa55
+ip domain-name ccnasecurity.com
+username admin secret adminpa55
+line vty 0 4
+login local
+crypto key generate rsa
+
+R1
+ip route 10.2.2.0 255.255.255.252 10.1.1.2
+ip route 192.168.3.0 255.255.255.0 10.1.1.2
+
+R2
+ip route 192.168.1.0 255.255.255.0 10.1.1.1
+ip route 192.168.3.0 255.255.255.0 10.2.2.1
+
+R3
+ip route 192.168.1.0 255.255.255.0 10.2.2.2
+ip route 10.1.1.0 255.255.255.252 10.2.2.2
+
+PCA> ping 192.168.3.3
+
+PCC> ssh -l admin 10.2.2.2
+
+Desktop -> Web Browser
+URL: http://192.168.1.3
+
+
+Create the Firewall Zones on R3 all comonda
+show version
+
+license boot module c1900 technology-package securityk9
+
+copy run start
+reload
+
+show version
+
+zone security IN-ZONE
+exit
+zone security OUT-ZONE
+exit
+
+access-list 101 permit ip 192.168.3.0 0.0.0.255 any
+
+class-map type inspect match-all IN-NET-CLASS-MAP
+match access-group 101
+exit
+
+policy-map type inspect IN-2-OUT-PMAP
+
+map IN-NET-CLASS-MAP
+
+class type inspect IN-NET-CLASS-MAP
+
+inspect
+exit
+exit
+
+Create a pair of zones
+zone-pair security IN-2-OUT-ZPAIR source IN-ZONE destination OUT-ZONE
+
+service-policy type inspect IN-2-OUT-PMAP
+exit
+
+int gig0/0
+zone-member security IN-ZONE
+exit
+int se0/1/1
+zone-member security OUT-ZONE
+exit
+
+copy run start
+reload
+
+
+PCC> ping 192.168.1.3
+
+PCC> ssh -l admin 10.2.2.2
+
+R3
+show policy-map type inspect zone-pair sessions 
+exit
+
+From internal PC-C, open a web browser to the PC-A server web page.
+URL: http://192.168.1.3
+
+R3
+show policy-map type inspect zone-pair sessions 
+
+Test Firewall Functionality from OUT-ZONE to IN-ZONE
+From internal PC-A, ping the external PC-C server.
+PCA>ping 192.168.3.3
+
+From R2, ping PC-C. 
+R2# ping 192.168.3.3
+

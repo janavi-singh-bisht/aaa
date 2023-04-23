@@ -1,0 +1,71 @@
+Configure the IP address on switch
+int vlan 1
+ip address 10.101.117.50 255.255.255.248
+no shut
+ip default-gateway 10.101.117.49
+
+int vlan 1
+ip address 10.101.117.34 255.255.255.240
+no shut
+ip default-gateway 10.101.117.33
+
+int vlan 1
+ip address 10.101.117.2 255.255.255.224
+no shut
+ip default-gateway 10.101.117.1
+
+Configure the secret on router and switch
+enable secret enpa55
+line console 0
+password conpa55
+login
+
+PCA> ping 10.101.117.35
+
+PCA> ping 10.101.117.2
+
+PCB> ping 10.101.117.2
+
+Configure domain name and crypto key for use with SSH
+ip domain-name ccnasecurity.com
+username admin secret adminpa55
+line vty 0 4
+login local
+exit
+crypto key generate rsa
+
+PCA> ssh -l admin 10.101.117.34
+
+PCA> ssh -l admin 10.101.117.2
+
+PCB> ssh -l admin 10.101.117.50
+
+PCB> ssh -l admin 10.101.117.2
+
+SWC> ssh -l admin 10.101.117.50
+
+SWC> ssh -l admin 10.101.117.34
+
+Configure the extended ACL router pe
+access-list 199 permit tcp 10.101.117.32 0.0.0.15 10.101.117.0 0.0.0.31 eq 22
+access-list 199 permit icmp any any
+int gig0/2
+ip access-group 199 out
+
+PCB> ping 10.101.117.51
+
+PCB> ping 10.101.117.2
+
+PCB> ssh -l admin 10.101.117.2
+
+PCA> ping 10.101.117.35
+
+PCA> ping 10.101.117.2
+
+PCA> ssh -l admin 10.101.117.2
+
+PCA> ssh -l admin 10.101.117.34
+
+SWB# ssh -l admin 10.101.117.2
+
+

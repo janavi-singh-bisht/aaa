@@ -1,0 +1,44 @@
+line vty 0 4
+password vtypa55
+login
+
+enable secret enpa55
+
+router ospf 1
+network 192.168.1.0 0.0.0.255 area 0
+router ospf 1
+area 0 authentication message-digest
+int gig0/0
+ip ospf message-digest-key 1 md5 MD5pa55
+
+
+
+Part 1:Configure Local AAA Authentication for Console Access on R1
+Test connectivity
+PC0> ping 192.168.1.3
+PC1> ping 192.168.1.2
+
+show ip ospf interface
+username admin secret adminpa55
+aaa new-model
+aaa authentication login default
+end
+exit
+
+admin
+adminpa55
+
+ip domain-name ccnasecurity.com
+crypto key generate rsa
+aaa authentication login SSH-LOGIN local
+line vty 0 4
+login authentication SSH-LOGIN
+transport input ssh
+end
+
+Verify the AAA authentication method
+PC0> ssh -l admin 192.168.1.1
+adminpa55
+
+PC1> ssh -l admin 192.168.1.1
+adminpa55 

@@ -1,0 +1,89 @@
+line vty 0 4
+password vtypa55
+login
+
+enable secret ciscoen55
+
+Part 2: Configure OSPF MD5 Authentication
+Test connectivity.
+PCA> ping 192.168.3.5
+PCB> ping 192.168.3.5
+
+router ospf 1
+network 192.168.1.0 0.0.0.255 area 0
+network 10.1.1.0 0.0.0.3 area 0
+
+router ospf 1
+network 10.1.1.0 0.0.0.3 area 0
+network 10.2.2.0 0.0.0.3 area 0
+
+router ospf 1
+network 192.168.3.0 0.0.0.255 area 0
+network 10.2.2.0 0.0.0.3 area 0
+
+Execute command on only serial interface of all routers
+router ospf 1
+area 0 authentication message-digest
+int se0/1/0
+ip ospf message-digest-key 1 md5 MD5pa55
+exit
+
+router ospf 1
+area 0 authentication message-digest
+int se0/1/0
+ip ospf message-digest-key 1 md5 MD5pa55
+exit
+int se0/1/1
+ip ospf message-digest-key 1 md5 MD5pa55
+exit
+
+router ospf 1
+area 0 authentication message-digest
+int se0/1/1
+ip ospf message-digest-key 1 md5 MD5pa55
+exit
+
+
+show ip ospf interface
+
+
+Configure NTP on all router
+ntp server 192.168.1.5
+ntp update-calendar
+
+show clock 
+
+ntp authenticate
+ntp trusted-key 1
+ntp authentication-key 1 md5 NTPpa55
+service timestamp log datetime msec
+
+Configure Routers to Log Messages to the Syslog Server 
+on all routers:
+logging host 192.168.1.6
+
+show logging
+
+on R3 this one
+ip domain-name ccnasecurity.com
+username SSHadmin privilege 15 secret ciscosshpa55
+line vty 0 4
+login local
+transport input ssh
+crypto key generate rsa
+show ip ssh
+
+ip ssh time-out 90
+ip ssh authentication-retries 2
+ip ssh version 2
+show ip ssh
+
+
+Open the Desktop of PC-C. Select the Command Prompt icon. From PC-C,
+enter the command to connect to R3 via Telnet
+telnet 192.168.3.1
+
+ssh -l SSHadmin 192.168.3.1
+password sshpa55
+
+ssh -v2 -l SSHadmin 10.2.2.1

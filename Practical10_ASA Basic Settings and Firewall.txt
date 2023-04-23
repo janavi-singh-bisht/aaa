@@ -1,0 +1,148 @@
+Execute command on all routers
+enable secret enpa55
+line console 0
+password conpa55
+login
+exit
+ip domain-name ccnasecurity.com
+username admin secret pa55
+line vty 0 4
+login local
+exit
+crypto key generate rsa
+
+R1
+router ospf 1
+network 209.165.200.0 0.0.0.7 area 0
+network 10.1.1.0 0.0.0.3 area 0  
+
+R2
+router ospf 1
+network 10.1.1.0 0.0.0.3 area 0
+network 10.2.2.0 0.0.0.3 area 0
+
+R3
+router ospf 1
+network 172.16.3.0 0.0.0.255 area 0
+network 10.2.2.0 0.0.0.3 area 0
+
+Verify connectivity.
+PCC -> R1, R2, R3 
+PCC -> ASA, PC-B, DMZ server
+
+ASA:
+show version
+show file system
+show flash:
+conf t
+hostname CCNAS-ASA
+domain-name ccnasecurity.com
+enable password enpa55
+clock set abhi ka time
+
+int vlan 1
+nameif inside
+ip address 192.168.1.1 255.255.255.0 
+security-level 100
+int vlan 2
+nameif outside
+ip address 209.165.200.226 255.255.255.248
+security-level 0
+exit
+show int ip brief
+
+show ip address
+
+show switch vlan
+
+Test connectivity to the ASA.
+PCB -> ASA 
+PCB -> R1 
+
+ASA waale main
+show route
+conf t
+route outside 0.0.0.0 0.0.0.0 209.165.200.225
+show route
+
+Test connectivity.
+ASA -> R1
+
+ASA waale main
+object network inside-net
+subnet 192.168.1.0 255.255.255.0
+nat (inside,outside) dynamic interface
+end
+exit
+show run
+
+PCB -> R1 
+
+show nat
+
+Modify the default MPF application inspection global service policy
+class-map inspection_default
+match default-inspection-traffic
+exit
+policy-map global_policy
+class inspection_default
+inspect icmp
+exit
+service-policy global_policy global
+
+PCB -> R1 
+
+
+Configure DHCP, AAA, and SSH
+dhcpd address 192.168.1.5-192.168.1.36 inside
+dhcpd dns 209.165.201.2 interface inside
+dhcpd enable inside
+
+Change PC-B from a static IP address to a DHCP client, and verify that it
+receives IP addressing information
+
+username admin password adminpa55
+aaa authentication ssh console LOCAL
+crypto key generate rsa modulus 1024
+ssh 192.168.1.0 255.255.255.0 inside
+ssh 172.16.3.3 255.255.255.255 outside
+ssh timeout 10
+
+
+PCC> ssh -l admin 209.165.200.226
+
+PCB> ssh -l admin 192.168.1.1
+
+
+Configure a DMZ, Static NAT, and ACLs
+int vlan 3
+ip address 192.168.2.1 255.255.255.0 
+no forward interface vlan 1  
+nameif dmz
+security-level 70
+int et0/2
+switchport access vlan 3
+exit
+exit
+
+show int ip brief
+
+show ip address
+
+show switch vlan
+
+object network dmz-server
+host 192.168.2.3 
+nat (dmz,outside) static 209.165.200.227 
+exit
+
+access-list OUTSIDE-DMZ permit icmp any host 192.168.2.3
+access-list OUTSIDE-DMZ permit tcp any host 192.168.2.3 eq 80
+access-group OUTSIDE-DMZ in interface outside
+
+Test access to the DMZ server.
+The ability to successfully test outside access to the DMZ web server was not
+in place; therefore, successful testing is not required.
+
+
+
