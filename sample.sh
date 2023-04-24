@@ -1,20 +1,18 @@
-
 echo "prct no : "
 read p
 
 if [ "$p" == "1" ]; then
 	echo "
 	# Practical1_SSH_NTP_SYSLOG.txt
+ r
+
 	line vty 0 4
 	password vtypa55
 	login
 
-	enable secret ciscoen55
+	enable secret enpa55
 
-	Part 2: Configure OSPF MD5 Authentication
-	Test connectivity.
-	PCA> ping 192.168.3.5
-	PCB> ping 192.168.3.5
+	: Configure OSPF router 
 
 	router ospf 1
 	network 192.168.1.0 0.0.0.255 area 0
@@ -28,15 +26,20 @@ if [ "$p" == "1" ]; then
 	network 192.168.3.0 0.0.0.255 area 0
 	network 10.2.2.0 0.0.0.3 area 0
 
+   PCA> ping 192.168.3.5
+	PCB> ping 192.168.3.5
+
 	Execute command on only serial interface of all routers
 	router ospf 1
 	area 0 authentication message-digest
+r1
 	int se0/1/0
 	ip ospf message-digest-key 1 md5 MD5pa55
 	exit
 
-	router ospf 1
-	area 0 authentication message-digest
+	router ospf 1!
+	area 0 authentication message-digest!
+r2
 	int se0/1/0
 	ip ospf message-digest-key 1 md5 MD5pa55
 	exit
@@ -44,11 +47,6 @@ if [ "$p" == "1" ]; then
 	ip ospf message-digest-key 1 md5 MD5pa55
 	exit
 
-	router ospf 1
-	area 0 authentication message-digest
-	int se0/1/1
-	ip ospf message-digest-key 1 md5 MD5pa55
-	exit
 
 
 	show ip ospf interface
@@ -73,10 +71,11 @@ if [ "$p" == "1" ]; then
 
 	on R3 this one
 	ip domain-name ccnasecurity.com
-	username SSHadmin privilege 15 secret ciscosshpa55
+	username SSHadmin privilege 15 secret sshpa55
 	line vty 0 4
 	login local
 	transport input ssh
+   crypto key zeroize rsa
 	crypto key generate rsa
 	show ip ssh
 
@@ -103,33 +102,30 @@ if [ "$p" == "2" ]; then
 	line vty 0 4
 	password vtypa55
 	login
-
 	enable secret enpa55
-
 	router ospf 1
 	network 192.168.1.0 0.0.0.255 area 0
 	router ospf 1
 	area 0 authentication message-digest
 	int gig0/0
-	ip ospf message-digest-key 1 md5 MD5pa55
-
-
-
+	ip ospf message-digest-key 1 md5 md5pa55
+	exit
+	show ip ospf interface
 	Part 1:Configure Local AAA Authentication for Console Access on R1
 	Test connectivity
-	PC0> ping 192.168.1.3
-	PC1> ping 192.168.1.2
-
-	show ip ospf interface
+	PC0> ping 192.168.1.1
+	PC1> ping 192.168.1.1
 	username admin secret adminpa55
 	aaa new-model
-	aaa authentication login default
+	aaa authentication login default local
+	line console 0
+	login authentication default
+	end
 	end
 	exit
-
 	admin
 	adminpa55
-
+	Part2:Configure local aaa authentication for vty lines on R1
 	ip domain-name ccnasecurity.com
 	crypto key generate rsa
 	aaa authentication login SSH-LOGIN local
@@ -137,11 +133,9 @@ if [ "$p" == "2" ]; then
 	login authentication SSH-LOGIN
 	transport input ssh
 	end
-
-	Verify the AAA authentication method
+	step:Verify the AAA authentication method
 	PC0> ssh -l admin 192.168.1.1
 	adminpa55
-
 	PC1> ssh -l admin 192.168.1.1
 	adminpa55 
 	" > sic.txt
@@ -153,7 +147,7 @@ if [ "$p" == "3a" ]; then
 	line vty 0 4
 	password vtypa55
 	login
-	enable secret ciscoenpa55
+	enable secret enpa55
 
 	Configure, Apply and Verify an Extended Numbered ACL
 	access-list 100 permit tcp 172.22.34.64 0.0.0.31 host 172.22.34.62 eq ftp
@@ -682,11 +676,10 @@ if [ "$p" == "6" ]; then
 fi
 
 if [ "$p" == "7" ]; then
-	touch camera1.py
 	echo "
 	# Practical7_Layer 2 Security.txt
 	Execute command on all switches and router
-	enable secret ciscoenpa55
+	enable secret enpa55
 	line console 0
 	password conpa55
 	login
@@ -695,22 +688,16 @@ if [ "$p" == "7" ]; then
 	line vty 0 4
 	login local
 	crypto key generate rsa
-
-	Determine the current root bridge
-	Central
-	show spanning-tree
-
+	Part2:Determinet the current root bridge
 	SW1
 	show spanning-tree
-
 	Central as the primary root bridge
 	spanning-tree vlan 1 root primary
 	show spanning-tree
-
 	SW-1 as a secondary root bridge
 	spanning-tree vlan 1 root secondary
+	exit
 	show spanning-tree
-
 	Enable PortFast on all access ports 
 	Commands on SWA-SWB
 	int range fa0/1-4
@@ -718,31 +705,25 @@ if [ "$p" == "7" ]; then
 	exit
 	int range fa0/1-4
 	spanning-tree bpduguard enable
-
+	show spanning-tree
 	int range fa0/23-24
 	spanning-tree guard root
-
+	Part 4 :
 	int range fa0/1-22
 	switchport mode access 
 	switchport port-security
 	switchport port-security maximum 2
 	switchport port-security violation shutdown
 	switchport port-security mac-address sticky
-
+	exit
+	exit
 	show port-security interface fa0/1
-
 	int range f0/5-22
 	shutdown
-
-
-
 	C1> ping 10.1.1.11
-
 	C1> ping 10.1.1.14
-
 	Commands on SWA-SWB
 	show port-security int fa0/1
-
 " > sic.txt
 
 fi
